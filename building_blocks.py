@@ -275,26 +275,46 @@ def greedy_selector(logits):
             max_logits = logits[i]
     return ind
     
-def gpt2(text_input):
-    weights = load_weights()
-    tokens = tokenizer.encode(text_input)
-    print(f"tokens: {tokens}")
-    logits = forward(tokens, weights["embedding_table"], weights["position_table"], weights["unembedding_table"], weights["d_head"], weights["num_heads"], weights["blocks"], weights["epsilon"], weights["epsilon"], weights["gamma_f"], weights["beta_f"])
-    #token_id = greedy_selector(logits)
-    top_indices = np.argsort(logits)[-10:][::-1]
-
-    for token_id in top_indices:
-        print(
-            token_id,
-            repr(tokenizer.decode([token_id])),
-            logits[token_id]
-        )
+# #for testing
+# def generate_once(text_input):
+#     weights = load_weights()
+#     tokens = tokenizer.encode(text_input)
+#     logits = forward(tokens, weights["embedding_table"], weights["position_table"], weights["unembedding_table"], weights["d_head"], weights["num_heads"], weights["blocks"], weights["epsilon"], weights["epsilon"], weights["gamma_f"], weights["beta_f"])
+#     token_id = greedy_selector(logits)
+#     token = tokenizer.decode([token_id])
+#     print(f" {token}")
+#     #top_indices = np.argsort(logits)[-10:][::-1]
+#     # for token_id in top_indices:
+#     #     print(
+#     #         token_id,
+#     #         repr(tokenizer.decode([token_id])),
+#     #         logits[token_id]
+#     #     )
         
-    # print(f"Token id is: {token_id}")
-    # token = tokenizer.decode([token_id])
-    # print(f"The next token is: {repr(token)}")
+#     # print(f"Token id is: {token_id}")
+#     # token = tokenizer.decode([token_id])
+#     # print(f"The next token is: {repr(token)}")
+#     return token, token_id
 
-gpt2("The capital of Canada is")
+def gpt2(text_input, max_new_tokens=25, eos_token_id=50256):
+    
+    weights = load_weights()
+    token_ids = tokenizer.encode(text_input)
+    
+    for _ in range(max_new_tokens):
+        logits = forward(token_ids, weights["embedding_table"], weights["position_table"], weights["unembedding_table"], weights["d_head"], weights["num_heads"], weights["blocks"], weights["epsilon"], weights["epsilon"], weights["gamma_f"], weights["beta_f"])
+        nxt_token_id = greedy_selector(logits)
+        if nxt_token_id == eos_token_id:
+            break
+        token_ids.append(nxt_token_id)
+    text = tokenizer.decode(token_ids)
+    return text
+        
+    
+print(gpt2("Once upon a time"))
+    
+    
+    
     
     
 
