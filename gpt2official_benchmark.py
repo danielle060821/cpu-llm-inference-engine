@@ -1,9 +1,9 @@
+#test: top 10 logits for "The capital of Canada is"
+
 import torch
 import numpy as np
 from transformers import GPT2LMHeadModel
 import numpy as np
-import json
-from safetensors import safe_open
 from transformers import AutoTokenizer
 
 tokenizer = AutoTokenizer.from_pretrained("openai-community/gpt2")

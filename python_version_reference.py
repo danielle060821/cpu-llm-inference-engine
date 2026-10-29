@@ -274,7 +274,22 @@ def greedy_selector(logits):
             ind = i
             max_logits = logits[i]
     return ind
+
+def sample_next_selector(logits, temperature=0.8, top_k=40):
+    scaled_logits = logits / temperature
+    top_indices = np.argsort(scaled_logits)[-top_k:]
+    top_logits = scaled_logits[top_indices]
     
+    #softmax
+    max_logit = np.max(top_logits)
+    exp_logits = np.exp(top_logits - max_logit)
+    probabilities = exp_logits / np.sum(exp_logits)
+    
+    #choose by probability
+    chosen_ind = np.random.choice(len(top_indices), p=probabilities)
+    token_id = top_indices[chosen_ind]
+    return token_id
+
 # #for testing
 # def generate_once(text_input):
 #     weights = load_weights()
@@ -296,21 +311,21 @@ def greedy_selector(logits):
 #     # print(f"The next token is: {repr(token)}")
 #     return token, token_id
 
-def gpt2(text_input, max_new_tokens=25, eos_token_id=50256):
+def gpt2(text_input, max_new_tokens=50, eos_token_id=50256):
     
     weights = load_weights()
     token_ids = tokenizer.encode(text_input)
     
     for _ in range(max_new_tokens):
         logits = forward(token_ids, weights["embedding_table"], weights["position_table"], weights["unembedding_table"], weights["d_head"], weights["num_heads"], weights["blocks"], weights["epsilon"], weights["epsilon"], weights["gamma_f"], weights["beta_f"])
-        nxt_token_id = greedy_selector(logits)
+        #nxt_token_id = greedy_selector(logits)
+        nxt_token_id = sample_next_selector(logits)
         if nxt_token_id == eos_token_id:
             break
         token_ids.append(nxt_token_id)
     text = tokenizer.decode(token_ids)
     return text
         
-    
 print(gpt2("Once upon a time"))
     
     
